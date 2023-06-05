@@ -33,14 +33,14 @@ public class SearchRunner
 		searchPath = string.Empty;
 
 		Argument[] arguments = ArgumentReader.Read(input);
-		if (arguments.Length != 1)
+		if (arguments.Length != 1 || arguments[0].Values.Count > 1)
 			return false;
-		else if (arguments[0].IsFlag)
+		else if (!arguments[0].NameIsValue)
 		{
 			ProcessCommand(arguments[0]);
 			return true;
 		}
-		else if (arguments[0].NameIsValue && !Directory.Exists(input))
+		else if (!Directory.Exists(input))
 		{
 			Console.WriteLine("Invalid search path. Enter a new command or search path (directory/folder):");
 			return false;
@@ -112,8 +112,8 @@ public class SearchRunner
 		Console.WriteLine($"Search flags{(fromCommandInput ? " (usable only in the term input)" : "")}:");
 		Console.WriteLine("  -, --                    Return to the command and search path input");
 		Console.WriteLine("  -h, --help               Prints this help message");
-		Console.WriteLine("  -q, --quit               Exits the program");
-		Console.WriteLine("  -n, --new                Starts a new search when the current one finishes");
+		Console.WriteLine("  -q, --quit               Exits the program after the search finishes");
+		Console.WriteLine("  -p, --print              Print the last search results");
 		Console.WriteLine("----------------------------------------------------------------------------");
 		Console.WriteLine("  -a, --any                Matches any of the given terms");
 		Console.WriteLine("  -c, --matchCase          Matches terms with the same case");
@@ -130,9 +130,9 @@ public class SearchRunner
 		Console.WriteLine("  -s, --silent,            Suppresses console output");
 		Console.WriteLine("----------------------------------------------------------------------------");
 		Console.WriteLine("  -f, --filter,            Filter the currently loaded search");
+		Console.WriteLine("  -l, --load,          	  Loads a search query from a 'query.sr' file. Any additional terms are added to the loaded query");
 		Console.WriteLine("  -w, --write,             Writes the current search result to a 'search.[extension]' file encoded in UTF-8");
 		Console.WriteLine("  Note:                    The file extension is determined by the output format");
-
 	}
 
 	Terms GetSearchTerms()
