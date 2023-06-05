@@ -367,14 +367,18 @@ dotnet_naming_style.s_camelcase.required_suffix =
 dotnet_naming_style.s_camelcase.word_separator = 
 dotnet_naming_style.s_camelcase.capitalization = camel_case
 
-# Other rules
 
+# Other rules
 dotnet_diagnostic.CA2201.severity = none # Exception type System.Exception is not sufficiently specific
 dotnet_diagnostic.CA1716.severity = none # Identifiers should not match keywords
 dotnet_diagnostic.CA1822.severity = none # Member does not access instance data and can be marked as static
 dotnet_diagnostic.CA1805.severity = none # Member is explicitly initialized to its default value
 dotnet_diagnostic.CA1720.severity = none # Identifier contains type name
+dotnet_diagnostic.CS8604.severity = none # Possible null reference argument for parameter
+dotnet_diagnostic.CS8625.severity = none # Cannot convert null literal to non-nullable reference type
+
 dotnet_diagnostic.IDE0045.severity = silent # If statement can be simplified
+
 dotnet_diagnostic.IDE0055.severity = error # Fix formatting
 dotnet_diagnostic.IDE0005.severity = error # Remove unnecessary using directives
 dotnet_diagnostic.IDE0008.severity = error # Use explicit type instead of 'var'
