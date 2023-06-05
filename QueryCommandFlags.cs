@@ -1,7 +1,7 @@
 namespace Search;
 
 [Flags]
-public enum QueryCommands
+public enum QueryCommandFlags
 {
 	None = 0,
 	Return = 1,
