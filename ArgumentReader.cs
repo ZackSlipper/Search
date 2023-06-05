@@ -4,7 +4,7 @@ namespace Search;
 
 public static class ArgumentReader
 {
-	public static Argument[] Read(string args)
+	public static Argument[] Read(string args, bool noValues = false)
 	{
 		if (string.IsNullOrWhiteSpace(args))
 			return Array.Empty<Argument>();
@@ -60,10 +60,10 @@ public static class ArgumentReader
 		if (sb.Length > 0)
 			arguments.Add(sb.ToString());
 
-		return BuildArguments(arguments.ToArray());
+		return BuildArguments(arguments.ToArray(), noValues);
 	}
 
-	public static Argument[] BuildArguments(IEnumerable<string> argumentStrings)
+	private static Argument[] BuildArguments(IEnumerable<string> argumentStrings, bool noValues)
 	{
 		List<Argument> arguments = new();
 		Argument? currentArgument = null;
@@ -88,10 +88,10 @@ public static class ArgumentReader
 				currentArgument = new(multiflag, false);
 				arguments.Add(currentArgument);
 			}
-			else if (currentArgument != null)
-				currentArgument.Values.Add(argText);
-			else
+			else if (currentArgument == null || noValues)
 				arguments.Add(new(argText, true));
+			else
+				currentArgument.Values.Add(argText);
 		}
 
 		return arguments.ToArray();
