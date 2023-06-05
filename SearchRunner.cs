@@ -7,11 +7,12 @@ public class SearchRunner
 	int foundCount;
 	string searchPath;
 
-	public SearchRunner() => Run();
+	public SearchRunner(string args) => Run(args);
 
-	void Run()
+	void Run(string args)
 	{
-		Terms terms;
+		if (!string.IsNullOrWhiteSpace(args))
+			ProcessInput(args);
 
 		while (true)
 		{
@@ -22,7 +23,7 @@ public class SearchRunner
 				ProcessInput(Console.ReadLine());
 			}
 
-			terms = GetSearchTerms();
+			Terms terms = GetSearchTerms();
 			Search(terms);
 		}
 	}
@@ -31,24 +32,27 @@ public class SearchRunner
 	{
 		searchPath = string.Empty;
 
-		if (input.StartsWith("-"))
-			return ProcessCommand(input[1..]);
-		else if (input.StartsWith("--"))
-			return ProcessCommand(input[2..]);
-
-		if (!Directory.Exists(input))
+		Argument[] arguments = ArgumentReader.Read(input);
+		if (arguments.Length != 1)
+			return false;
+		else if (arguments[0].IsFlag)
+		{
+			ProcessCommand(arguments[0]);
+			return true;
+		}
+		else if (arguments[0].NameIsValue && !Directory.Exists(input))
 		{
 			Console.WriteLine("Invalid search path. Enter a new command or search path (directory/folder):");
 			return false;
 		}
 
-		searchPath = input;
+		searchPath = arguments[0].Name;
 		return true;
 	}
 
-	bool ProcessCommand(string command)
+	bool ProcessCommand(Argument argument)
 	{
-		switch (command)
+		switch (argument.Name)
 		{
 			case "quit":
 			case "q":

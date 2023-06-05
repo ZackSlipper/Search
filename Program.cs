@@ -5,6 +5,6 @@ static class Program
 
 	public static void Main(string[] args)
 	{
-		SearchRunner search = new();
+		SearchRunner search = new(string.Join(' ', args));
 	}
 }
