@@ -6,6 +6,7 @@ namespace Search
     public class SearchRunner
     {
         int foundCount;
+        string searchPath;
 
         public SearchRunner()
         {
@@ -14,41 +15,129 @@ namespace Search
 
         void Run()
         {
-            string path = null;
             Terms terms;
 
             while (true)
             {
-                if (string.IsNullOrWhiteSpace(path))
-                    path = GetSearchPath();
+                //Executes given commands or gets the search path
+                while (string.IsNullOrWhiteSpace(searchPath))
+                {
+                    Console.WriteLine("Enter command or search path (directory/folder):");
+                    ProcessInput(Console.ReadLine());
+                }
+                
                 terms = GetSearchTerms();
-
-                Console.WriteLine("Searching...");
-
-                foundCount = 0;
-                Find(path, terms, 0, new());
-
-                Console.WriteLine("");
-                Console.WriteLine($"Found {foundCount} items");
+                Search(terms);
             }
         }
 
-        string GetSearchPath()
+        bool ProcessInput(string input)
         {
-            Console.WriteLine("Enter search path (directory/folder):");
+            searchPath = string.Empty;
 
-            string path = Console.ReadLine();
-            while (!Directory.Exists(path))
+            if (input.StartsWith("-"))
+                return ProcessCommand(input[1..]);
+            else if (input.StartsWith("--"))
+                return ProcessCommand(input[2..]);
+
+            if (!Directory.Exists(input))
             {
-                Console.WriteLine("Invalid path. Enter a new search path (directory/folder):");
-                path = Console.ReadLine();
+                Console.WriteLine("Invalid search path. Enter a new command or search path (directory/folder):");
+                return false;
             }
-            return path;
+
+            searchPath = input;
+            return true;
+        }
+
+        bool ProcessCommand(string command)
+        {
+            switch (command)
+            {
+                case "quit":
+                case "q":
+                    Environment.Exit(0);
+                    return true;
+                case "help":
+                case "h":
+                case "?":
+                    PrintCommandHelp();
+                    return true;
+                case "version":
+                case "v":
+                    Console.WriteLine(Program.Version);
+                    return false;
+                default:
+                    Console.WriteLine("Invalid command. Enter a new command or search path (directory/folder):");
+                    return false;
+            }
+        }
+
+        void PrintCommandHelp()
+        {
+            Console.WriteLine("Commands:");
+            Console.WriteLine("  -h, --help               Prints this help message");
+            Console.WriteLine("  -v, --version,           Prints the current version");
+            Console.WriteLine("  -r, --read,              Reads a search from a 'search.sr' file");
+            Console.WriteLine("  -q, --quit               Exits the program");
+
+            Console.WriteLine(string.Empty);
+            PrintSearchHelp(true);
+        }
+
+        void PrintSearchHelp(bool fromCommandInput = false)
+        {
+            Console.WriteLine("Term input usage:");
+            Console.WriteLine("* Flags can be used in any order and can be mixed in with search terms");
+            Console.WriteLine("* When entering single letter flags after the first '-' symbol, you can enter multiple flags at once (without spaces)");
+            Console.WriteLine("* When entering full word flags after the first '--' symbol, you must enter each flag separately (with spaces)");
+            Console.WriteLine("* When entering search terms, you can enter multiple terms at once separated by spaces");
+            Console.WriteLine(string.Empty);
+
+            Console.WriteLine("Modifiers (used at the start of a term word):");
+            Console.WriteLine("  +                        Required term.    The term must be present in the search item");
+            Console.WriteLine("  ?                        Optional term.    The term can be present in the search item");
+            Console.WriteLine("  !                        Fail term.        The term must not be present in the search item");
+            Console.WriteLine("  *                        Unique term.      The search item must be unique");
+            Console.WriteLine("  \\                        Escape modifier.  Makes the modifier a part of the search term word");
+            Console.WriteLine("Note:");
+            Console.WriteLine("    * Only one modifier can be used per term");
+            Console.WriteLine("    * Modifiers override flags");
+            Console.WriteLine("    * If no modifier is used, the term is treated as a required term");
+            Console.WriteLine("    * If multiple modifiers are used for a single term, the first one is used and the rest are treated as part of the search term word");
+            Console.WriteLine("    * If the term consists of no words and a single modifier, the modifier is treated as a search term word");
+
+            Console.WriteLine(string.Empty);
+
+            Console.WriteLine($"Search flags{(fromCommandInput ? " (usable only in the term input)" : "")}:");
+            Console.WriteLine("  -, --                    Return to the command and search path input");
+            Console.WriteLine("  -h, --help               Prints this help message");
+            Console.WriteLine("  -q, --quit               Exits the program");
+            Console.WriteLine("  -n, --new                Starts a new search when the current one finishes");
+            Console.WriteLine("----------------------------------------------------------------------------");
+            Console.WriteLine("  -a, --any                Matches any of the given terms");
+            Console.WriteLine("  -c, --matchCase          Matches terms with the same case");
+            Console.WriteLine("  -d, --onlyDir            Only searches directories");
+            Console.WriteLine("----------------------------------------------------------------------------");
+            Console.WriteLine("  -r, --required,          Matches only if all terms are found");
+            Console.WriteLine("  -o, --optional,          Matches if any terms are found");
+            Console.WriteLine("  -x, --fail,              Matches if none of the terms are found");
+            Console.WriteLine("  -u, --unique,            Matches if the search item is unique");
+            Console.WriteLine("----------------------------------------------------------------------------");
+            Console.WriteLine("  -t, --tree               Outputs the file/directory tree of the current search");
+            Console.WriteLine("  -m, --markdown           Outputs the current search as markdown");
+            Console.WriteLine("  -j, --json,              Outputs the current search as JSON");
+            Console.WriteLine("  -s, --silent,            Suppresses console output");
+            Console.WriteLine("----------------------------------------------------------------------------");
+            Console.WriteLine("  -f, --filter,            Filter the currently loaded search");
+            Console.WriteLine("  -w, --write,             Writes the current search result to a 'search.[extension]' file encoded in UTF-8");
+            Console.WriteLine("  Note:                    The file extension is determined by the output format");
+
         }
 
         Terms GetSearchTerms()
         {
-            Console.WriteLine("Enter a search term:");
+            Console.WriteLine("Enter search options and terms separated by a space (use '-h' for help):");
 
             return new(Console.ReadLine().Split(" ", StringSplitOptions.RemoveEmptyEntries));
         }
@@ -58,6 +147,17 @@ namespace Search
             foreach (string dir in dirTree)
                 Console.WriteLine(dir);
             dirTree.Clear();
+        }
+
+        void Search(Terms terms)
+        {
+            foundCount = 0;
+
+            Console.WriteLine("Searching...");
+            Find(searchPath, terms, 0, new());
+
+            Console.WriteLine("");
+            Console.WriteLine($"Found {foundCount} items");
         }
 
         void Find(string path, Terms terms, int level, List<string> dirTree)
@@ -152,7 +252,7 @@ namespace Search
                         any = true;
                     if (option == "matchcase" || option == "c")
                         matchCase = true;
-                    if (option == "fullpath" || option == "f")
+                    if (option == "fullpath" || option == "p")
                         FullPath = true;
                     if (option == "onlyDir" || option == "d")
                         OnlyDirectories = true;
@@ -182,7 +282,7 @@ namespace Search
                         requiredTerms.Add(terms[i][1..]);
                     else if (terms[i].StartsWith("*"))
                         optionalTerms.Add(terms[i][1..]);
-                    else if (terms[i].StartsWith("-"))
+                    else if (terms[i].StartsWith("!"))
                         failTerms.Add(terms[i][1..]);
                     else if (any)
                         optionalTerms.Add(terms[i]);
