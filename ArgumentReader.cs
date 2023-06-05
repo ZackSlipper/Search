@@ -4,6 +4,8 @@ namespace Search;
 
 public static class ArgumentReader
 {
+	public static readonly string[] ArgumentIdentifiers = new[] { "-", "--" };
+
 	public static Argument[] Read(string args)
 	{
 		if (string.IsNullOrWhiteSpace(args))
@@ -70,12 +72,13 @@ public static class ArgumentReader
 
 		foreach (string argText in argumentStrings)
 		{
-			if (argText.StartsWithAny("--", "-"))
+			int index = argText.StartsWithAnyIndex(ArgumentIdentifiers);
+			if (index > -1)
 			{
 				if (currentArgument != null)
 					arguments.Add(currentArgument);
 
-				currentArgument = new(argText[1..], false);
+				currentArgument = new(argText[ArgumentIdentifiers[index].Length..], false);
 			}
 			else if (currentArgument != null)
 				currentArgument.Values.Add(argText);
