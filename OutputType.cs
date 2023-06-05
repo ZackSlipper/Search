@@ -20,5 +20,5 @@ public enum OutputType
 	/// <summary>
 	/// File and directory tree in the JSON format.
 	/// </summary>
-	JSON
+	Json
 }
